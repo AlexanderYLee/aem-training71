@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.nodetype.NodeType;
 import java.util.Iterator;
 import java.util.regex.Pattern;
 
@@ -46,7 +45,10 @@ public class PageContentVersionMaker implements EventHandler {
             if (p.matcher(modification.getPath()).matches()&&!modification.getType().equals(PageModification.ModificationType.DELETED)){
                 try {
                     session = repository.loginAdministrative(null);
-                    session.getWorkspace().getVersionManager().checkin(modification.getPath());
+                    Node node = session.getNode(modification.getPath()).getNode("jcr:content");
+                    if (node.hasProperty("jcr:description")&&!node.getProperty("jcr:description").getString().isEmpty()){
+                        session.getWorkspace().getVersionManager().checkin(modification.getPath());
+                    }
                 } catch (RepositoryException e) {
                     log.debug(e.getMessage());
                 }finally {
